@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import multiprocessing
 from datetime import datetime
+import shutil
 from tqdm import tqdm
 import subprocess
 import logging
@@ -333,6 +334,12 @@ def attempt_ssh_login(host, user, password, ssh_options, args):
             logging.debug(
                 f"Failed login for {user}@{host} with password: {obfuscate_if_secret(password, args)}")
             return False
+    except FileNotFoundError:
+        if not shutil.which("sshpass"):
+            logging.error(
+                "sshpass is not installed. Please install sshpass to proceed.")
+            sys.exit(1)
+        logging.error(f"Error connecting to {host} as {user}: {e}")
     except Exception as e:
         logging.error(f"Error connecting to {host} as {user}: {e}")
         return False
