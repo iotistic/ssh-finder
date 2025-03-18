@@ -20,7 +20,7 @@ def parse_arguments():
     Parse command-line arguments and return them.
     """
     parser = argparse.ArgumentParser(
-        description="Auto SSH script with parallel attempts, host filtering via fping, extra SSH options, "
+        description="SSH Finder script with parallel attempts, host filtering via fping, extra SSH options, "
                     "and configurable ping/port checks.",
         epilog="""
 Examples:
