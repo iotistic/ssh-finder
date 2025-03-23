@@ -17,28 +17,31 @@ Ensure you have Python installed, then install required dependencies:
 ```sh
 sudo apt install sshpass
 sudo apt install python3-tqdm
+
+chmod +x ssh_finder.py
+sudo ln "$PWD/ssh_finder.py" /usr/local/bin/ssh-finder
 ```
 
 ## Usage
 Run the script using Python:
 ```sh
-python3 ssh_finder.py [OPTIONS]
+ssh-finder [OPTIONS]
 ```
 
 ### Basic Example
 ```sh
-python3 ssh_finder.py -H 192.168.1.0/24
+ssh-finder -H 192.168.1.0/24
 ```
 Or specify credentials:
 ```sh
-python3 ssh_finder.py -H 192.168.1.0/24 -u <username> -p <password>
+ssh-finder -H 192.168.1.0/24 -u <username> -p <password>
 ```
 
 If `-u` or `-p` is not specified, the script will prompt for interactive input.
 
 #### Example Output
 ```
-$ python3 ssh_finder.py -H 192.168.1.0/24 -u mnvr -p 123 
+$ ssh-finder -H 192.168.1.0/24 -u mnvr -p 123 
 
 2025-03-18 12:02:59,386 - INFO - Reading usernames...
 2025-03-18 12:02:59,387 - INFO - Reading passwords...
@@ -65,7 +68,7 @@ Successful Combinations:
 ```
 #### Interactive and Secret modes example
 ```
-$ python3 auto_ssh.py -H 192.168.1.0/24 -s
+$ ssh-finder -H 192.168.1.0/24 -s
 2025-03-23 13:55:57,496 - INFO - Reading usernames...
 Enter your SSH username: mnvr
 2025-03-23 13:56:00,092 - INFO - Reading passwords...
