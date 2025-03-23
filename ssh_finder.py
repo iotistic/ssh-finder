@@ -20,37 +20,46 @@ def parse_arguments():
     """
     Parse command-line arguments and return them.
     """
+    excutable_name = sys.argv[0].split("/")[-1]
+
     parser = argparse.ArgumentParser(
         description="SSH Finder script with parallel attempts, host filtering via fping, extra SSH options, "
                     "and configurable ping/port checks.",
-        epilog="""
+        epilog=f"""
 Examples:
-  python3 ssh_finder.py -H 192.168.1.1,192.168.1.2 -p pass123,rootpass -u admin
-  python3 ssh_finder.py -H 192.168.1.100 -p pass123 -u admin --ssh-options "-p 2222 -o ConnectTimeout=5"
-  python3 ssh_finder.py -H 192.168.1.0/30 -p pass123 -U users.txt --inline-users admin,root
-  python3 ssh_finder.py -H 192.168.1.1 -p pass123 -u admin --login-on-first-success
-  python3 ssh_finder.py -H 192.168.1.1,192.168.1.2 -p pass123,rootpass --skip-ping --skip-port-check
+  {excutable_name} -H 192.168.1.1,192.168.1.2 -p pass123,rootpass -u admin
+  {excutable_name} -H 192.168.1.100 -p pass123 -u admin --ssh-options "-p 2222 -o ConnectTimeout=5"
+  {excutable_name} -H 192.168.1.0/30 -p pass123 --users-file users.txt --users admin,root
+  {excutable_name} -H 192.168.1.1 -p pass123 -u admin --login-on-first-success
+  {excutable_name} -H 192.168.1.1,192.168.1.2 -p pass123,rootpass --skip-ping --skip-port-check
 """, formatter_class=argparse.RawTextHelpFormatter)
 
     # Host options
-    parser.add_argument("-H", "--inline-hosts",
-                        help="Comma-separated list of hosts or subnets (e.g., 192.168.1.1,192.168.1.2/24)")
-    parser.add_argument("--hosts",
-                        help="File containing list of hosts/subnets (default: hosts.txt)")
+    host_group = parser.add_mutually_exclusive_group(required=True)
+    host_group.description = "Specify the hosts to attempt login to."
+
+    host_group.add_argument("-H", "--hosts",
+                            help="Comma-separated list of hosts or subnets (e.g., 192.168.1.1,192.168.1.2/24)")
+    host_group.add_argument("--hosts-file",
+                            help="File containing list of hosts/subnets (default: hosts.txt)")
 
     # Password options
-    parser.add_argument("-p", "--inline-passwords",
-                        help="Comma-separated list of passwords (e.g., pass123,rootpass)")
-    parser.add_argument("--passwords",
-                        help="File containing passwords (default: passwords.txt)")
+    password_group = parser.add_mutually_exclusive_group()
+    password_group.description = "Specify the password(s) to use for SSH login. If not provided, the script will prompt for a password."
+
+    password_group.add_argument("-p", "--password", "--passwords",
+                                help="Comma-separated list of passwords (e.g., pass123,rootpass)")
+    password_group.add_argument("--passwords-file",
+                                help="File containing passwords (default: passwords.txt)")
 
     # User options
-    parser.add_argument("-u", "--user",
-                        help="Single SSH username")
-    parser.add_argument("-U", "--users",
-                        help="File containing multiple usernames (one per line)")
-    parser.add_argument("--inline-users",
-                        help="Comma-separated list of usernames (e.g., admin,root)")
+    user_group = parser.add_mutually_exclusive_group()
+    user_group.description = "Specify the username(s) to use for SSH login. If not provided, the script will prompt for a username."
+
+    user_group.add_argument("-u", "--user", "--users",
+                            help="Comma-separated list of usernames (e.g., admin,root)")
+    user_group.add_argument("--users-file",
+                            help="File containing multiple usernames (one per line)")
 
     # Logging and SSH options
     parser.add_argument("-l", "--log-file", default="ssh_attempts.log",
@@ -127,7 +136,7 @@ def ping_host(host, ping_timeout):
     return host if result.returncode == 0 else None
 
 
-def fping_hosts(hosts, args):
+def check_reachable_hosts(hosts, args):
     """
     Use ping to check which hosts are reachable.
     Returns a set of reachable hosts.
@@ -187,15 +196,15 @@ def parse_hosts(args):
     hosts = []
     lines = []
 
-    if args.inline_hosts:
-        lines.extend(args.inline_hosts.split(','))
-    elif args.hosts:
+    if args.hosts:
+        lines.extend(args.hosts.split(','))
+    elif args.hosts_file:
         try:
-            with open(args.hosts, "r") as f:
+            with open(args.hosts_file, "r") as f:
                 lines.extend([line.strip()
                              for line in f.readlines() if line.strip()])
         except FileNotFoundError:
-            logging.error(f"Hosts file {args.hosts} not found!")
+            logging.error(f"Hosts file {args.hosts_file} not found!")
             sys.exit(1)
     else:
         logging.error("No hosts provided! Use -H or --hosts.")
@@ -215,7 +224,7 @@ def parse_hosts(args):
     if not args.skip_ping:
         logging.info(
             f"Checking ping for reachable hosts with timeout {args.ping_timeout} sec...")
-        reachable = fping_hosts(hosts, args)
+        reachable = check_reachable_hosts(hosts, args)
         logging.info(f"Found {len(reachable)} reachable hosts.")
         logging.debug(f"Reachable hosts: {reachable}")
     else:
@@ -251,15 +260,15 @@ def read_passwords(args):
     logging.info("Reading passwords...")
 
     passwords = []
-    if args.inline_passwords:
-        passwords.extend(args.inline_passwords.split(','))
-    elif args.passwords:
+    if args.passwords:
+        passwords.extend(args.passwords.split(','))
+    elif args.passwords_file:
         try:
-            with open(args.passwords, "r") as f:
+            with open(args.passwords_file, "r") as f:
                 passwords.extend([line.strip()
                                  for line in f.readlines() if line.strip()])
         except FileNotFoundError:
-            logging.error(f"Password file {args.passwords} not found!")
+            logging.error(f"Password file {args.passwords_file} not found!")
             sys.exit(1)
     else:
         if args.secret:
@@ -282,17 +291,15 @@ def read_users(args):
     logging.info("Reading usernames...")
 
     users = []
-    if args.user:
-        users.append(args.user)
-    if args.inline_users:
-        users.extend(args.inline_users.split(','))
-    elif args.users:
+    if args.users:
+        users.extend(args.users.split(','))
+    elif args.users_file:
         try:
-            with open(args.users, "r") as f:
+            with open(args.users_file, "r") as f:
                 users.extend([line.strip()
                              for line in f.readlines() if line.strip()])
         except FileNotFoundError:
-            logging.error(f"User file {args.users} not found!")
+            logging.error(f"User file {args.users_file} not found!")
             sys.exit(1)
     if not users:
         users.append(input("Enter your SSH username: "))
