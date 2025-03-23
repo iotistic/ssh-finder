@@ -5,6 +5,7 @@ SSH Finder is a utility designed to help users quickly identify accessible SSH h
 
 ## Features
 - Supports both inline and file-based input for hosts, users, and passwords
+- Interactive mode for entering username and password if not provided via arguments
 - Parallel SSH login attempts for efficiency
 - Optional ping and port availability checks
 - Customizable SSH options (e.g., timeout, port selection)
@@ -33,9 +34,11 @@ Or specify credentials:
 python3 ssh_finder.py -H 192.168.1.0/24 -u <username> -p <password>
 ```
 
+If `-u` or `-p` is not specified, the script will prompt for interactive input.
+
 #### Example Output
 ```
-# python3 ssh_finder.py -H 192.168.1.0/24 -u mnvr -p 123 
+$ python3 ssh_finder.py -H 192.168.1.0/24 -u mnvr -p 123 
 
 2025-03-18 12:02:59,386 - INFO - Reading usernames...
 2025-03-18 12:02:59,387 - INFO - Reading passwords...
@@ -60,6 +63,35 @@ Successful Combinations:
   ✅ Host: 192.168.1.223 | User: mnvr | Password: 123      → SSH Command: ssh mnvr@192.168.1.223
 =================================
 ```
+#### Interactive and Secret modes example
+```
+$ python3 auto_ssh.py -H 192.168.1.0/24 -s
+2025-03-23 13:55:57,496 - INFO - Reading usernames...
+Enter your SSH username: mnvr
+2025-03-23 13:56:00,092 - INFO - Reading passwords...
+Enter your SSH password: 
+2025-03-23 13:56:01,657 - INFO - Parsing hosts and filtering reachable hosts with open SSH port...
+2025-03-23 13:56:01,658 - INFO - Checking ping for reachable hosts with timeout 1 sec...
+2025-03-23 13:56:04,706 - INFO - Found 46 reachable hosts.
+2025-03-23 13:56:04,706 - INFO - Checking SSH port 22 for reachable hosts...
+2025-03-23 13:56:13,847 - INFO - Found 15
+Trying combinations:  27%|██████████████████████████████████████████████▍                                                                                                                               | 4/15 [00:00<00:02,  5.39it/s]2025-03-23 13:56:15,291 - INFO - ✅ SUCCESSFUL LOGIN! mnvr@192.168.1.148 with password: ********
+Trying combinations:  33%|██████████████████████████████████████████████████████████                                                                                                                    | 5/15 [00:01<00:03,  2.90it/s]2025-03-23 13:56:15,457 - INFO - ✅ SUCCESSFUL LOGIN! mnvr@192.168.1.140 with password: ********
+Trying combinations: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 15/15 [00:04<00:00,  3.36it/s]
+
+
+===== LOGIN ATTEMPT REPORT =====
+Generated on: 2025-03-23 13:56:18
+Total combinations attempted: 15
+Successful logins: 2
+Failed attempts: 13
+Success rate: 13.33%
+---------------------------------
+Successful Combinations:
+  ✅ Host: 192.168.1.140 | User: mnvr | Password: ********      → SSH Command: ssh mnvr@192.168.1.140
+  ✅ Host: 192.168.1.148 | User: mnvr | Password: ********      → SSH Command: ssh mnvr@192.168.1.148
+=================================
+```
 
 ## Options
 ### Host Options
@@ -72,6 +104,7 @@ Successful Combinations:
 - `-u, --user` : Single SSH username
 - `-U, --users` : File containing multiple usernames
 - `--inline-users` : Comma-separated list of usernames
+- **Interactive Mode**: If no username or password is provided, the script will prompt for input securely.
 
 ### Logging & Output Options
 - `-l, --log-file` : Specify log file location (default: `ssh_attempts.log`)
@@ -98,4 +131,5 @@ Successful Combinations:
 - Ensure you have permission before attempting SSH logins.
 - Use responsibly and ethically.
 - Requires Python 3.
+
 
