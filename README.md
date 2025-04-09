@@ -1,9 +1,11 @@
 # SSH Finder Script
 
 ## Overview
+
 SSH Finder is a utility designed to help users quickly identify accessible SSH hosts within a given network range and attempt login using specified credentials. It is useful for system administrators, security researchers, and network engineers who need to audit SSH access or locate their devices within a network. The script automates host discovery, credential testing, and login reporting with configurable options.
 
 ## Features
+
 - Supports both inline and file-based input for hosts, users, and passwords
 - Interactive mode for entering username and password if not provided via arguments
 - Parallel SSH login attempts for efficiency
@@ -13,26 +15,35 @@ SSH Finder is a utility designed to help users quickly identify accessible SSH h
 - Secret mode for password input
 
 ## Setup
+
 Ensure you have Python installed, then install required dependencies:
+
 ```sh
 sudo apt install sshpass
 sudo apt install python3-tqdm
 
+git clone https://github.com/iotistic/ssh-finder.git
+cd ssh-finder
 chmod +x ssh_finder.py
-sudo ln "$PWD/ssh_finder.py" /usr/local/bin/ssh-finder
+sudo ln -s "$PWD/ssh_finder.py" /usr/local/bin/ssh-finder
 ```
 
 ## Usage
+
 Run the script using Python:
+
 ```sh
 ssh-finder [OPTIONS]
 ```
 
 ### Basic Example
+
 ```sh
 ssh-finder -H 192.168.1.0/24
 ```
+
 Or specify credentials:
+
 ```sh
 ssh-finder -H 192.168.1.0/24 -u <username> -p <password>
 ```
@@ -40,8 +51,9 @@ ssh-finder -H 192.168.1.0/24 -u <username> -p <password>
 If `-u` or `-p` is not specified, the script will prompt for interactive input.
 
 #### Example Output
+
 ```
-$ ssh-finder -H 192.168.1.0/24 -u mnvr -p 123 
+$ ssh-finder -H 192.168.1.0/24 -u mnvr -p 123
 
 2025-03-18 12:02:59,386 - INFO - Reading usernames...
 2025-03-18 12:02:59,387 - INFO - Reading passwords...
@@ -66,13 +78,15 @@ Successful Combinations:
   ✅ Host: 192.168.1.223 | User: mnvr | Password: 123      → SSH Command: ssh mnvr@192.168.1.223
 =================================
 ```
+
 #### Interactive and Secret modes example
+
 ```
 $ ssh-finder -H 192.168.1.0/24 -s
 2025-03-23 13:55:57,496 - INFO - Reading usernames...
 Enter your SSH username: mnvr
 2025-03-23 13:56:00,092 - INFO - Reading passwords...
-Enter your SSH password: 
+Enter your SSH password:
 2025-03-23 13:56:01,657 - INFO - Parsing hosts and filtering reachable hosts with open SSH port...
 2025-03-23 13:56:01,658 - INFO - Checking ping for reachable hosts with timeout 1 sec...
 2025-03-23 13:56:04,706 - INFO - Found 46 reachable hosts.
@@ -99,11 +113,14 @@ Successful Combinations:
 ```
 
 ## Options
+
 ### Host Options
+
 - `-H, --inline-hosts` : Comma-separated list of hosts/subnets
 - `--hosts` : File containing list of hosts/subnets
 
 ### Authentication Options
+
 - `-p, --inline-passwords` : Comma-separated list of passwords
 - `--passwords` : File containing passwords
 - `-u, --user` : Single SSH username
@@ -112,15 +129,18 @@ Successful Combinations:
 - **Interactive Mode**: If no username or password is provided, the script will prompt for input securely.
 
 ### Logging & Output Options
+
 - `-l, --log-file` : Specify log file location (default: `ssh_attempts.log`)
 - `-q, --quiet` : Suppress most output
 - `-v, --verbose` : Enable detailed logs
 
 ### SSH & Connection Options
+
 - `--ssh-options` : Extra SSH options (e.g., `'-p 2222 -o ConnectTimeout=5'`)
 - `-c, --connect-on-first-success` : Stop and open SSH session on first success
 
 ### Ping & Port Checks
+
 - `--skip-ping` : Skip ping check
 - `--ping-timeout` : Set ping timeout (default: `1` second)
 - `--ping-pool-size` : Maximum concurrent ping processes
@@ -129,12 +149,12 @@ Successful Combinations:
 - `--port-timeout` : Timeout for port check (default: `1` second)
 
 ### Parallelism & Security
+
 - `--max-threads` : Maximum parallel SSH attempts
 - `-s, --secret` : Enable secret mode for password input
 
 ## Notes
+
 - Ensure you have permission before attempting SSH logins.
 - Use responsibly and ethically.
 - Requires Python 3.
-
-
