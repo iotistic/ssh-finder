@@ -289,7 +289,7 @@ def read_users(args):
     """
     Read usernames from inline input, file, or prompt the user.
     """
-    logging.info("args.users", args)
+    logging.info("args.users", args.users)
     logging.info("----------------Reading usernames...")
     time.sleep(10)
 
