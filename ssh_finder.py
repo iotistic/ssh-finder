@@ -2,6 +2,7 @@
 import multiprocessing
 from datetime import datetime
 import shutil
+import time
 from tqdm import tqdm
 import subprocess
 import logging
@@ -47,19 +48,19 @@ Examples:
     password_group = parser.add_mutually_exclusive_group()
     password_group.description = "Specify the password(s) to use for SSH login. If not provided, the script will prompt for a password."
 
-    password_group.add_argument("-p", "--password", "--passwords",
-                                help="Comma-separated list of passwords (e.g., pass123,rootpass)")
-    password_group.add_argument("--passwords-file",
-                                help="File containing passwords (default: passwords.txt)")
+    parser.add_argument("-p", "--passwords",
+                        help="Comma-separated list of passwords (e.g., pass123,rootpass)")
+    parser.add_argument("--passwords-file",
+                        help="File containing passwords (default: passwords.txt)")
 
     # User options
     user_group = parser.add_mutually_exclusive_group()
     user_group.description = "Specify the username(s) to use for SSH login. If not provided, the script will prompt for a username."
 
-    user_group.add_argument("-u", "--user", "--users",
-                            help="Comma-separated list of usernames (e.g., admin,root)")
-    user_group.add_argument("--users-file",
-                            help="File containing multiple usernames (one per line)")
+    parser.add_argument("-u", "--users",
+                        help="Comma-separated list of usernames (e.g., admin,root)")
+    parser.add_argument("--users-file",
+                        help="File containing multiple usernames (one per line)")
 
     # Logging and SSH options
     parser.add_argument("-l", "--log-file", default="ssh_attempts.log",
@@ -288,7 +289,9 @@ def read_users(args):
     """
     Read usernames from inline input, file, or prompt the user.
     """
-    logging.info("Reading usernames...")
+    logging.info("args.users", args)
+    logging.info("----------------Reading usernames...")
+    time.sleep(10)
 
     users = []
     if args.users:
