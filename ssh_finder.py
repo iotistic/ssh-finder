@@ -45,18 +45,12 @@ Examples:
                             help="File containing list of hosts/subnets (default: hosts.txt)")
 
     # Password options
-    password_group = parser.add_mutually_exclusive_group()
-    password_group.description = "Specify the password(s) to use for SSH login. If not provided, the script will prompt for a password."
-
     parser.add_argument("-p", "--passwords",
                         help="Comma-separated list of passwords (e.g., pass123,rootpass)")
     parser.add_argument("--passwords-file",
                         help="File containing passwords (default: passwords.txt)")
 
     # User options
-    user_group = parser.add_mutually_exclusive_group()
-    user_group.description = "Specify the username(s) to use for SSH login. If not provided, the script will prompt for a username."
-
     parser.add_argument("-u", "--users",
                         help="Comma-separated list of usernames (e.g., admin,root)")
     parser.add_argument("--users-file",
