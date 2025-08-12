@@ -6,21 +6,22 @@ SSH Finder is a utility designed to help users quickly identify accessible SSH h
 
 ## Features
 
+- Pure Python implementation using paramiko for SSH connections
 - Supports both inline and file-based input for hosts, users, and passwords
 - Interactive mode for entering username and password if not provided via arguments
 - Parallel SSH login attempts for efficiency
 - Optional ping and port availability checks
-- Customizable SSH options (e.g., timeout, port selection)
+- Customizable SSH connection timeout
 - Logging and verbosity controls
 - Secret mode for password input
+- Detailed success report with SSH connection commands
 
 ## Setup
 
-Ensure you have Python installed, then install required dependencies:
+Ensure you have Python 3.6+ installed, then install required dependencies:
 
 ```sh
-sudo apt install sshpass
-sudo apt install python3-tqdm
+pip install paramiko tqdm
 
 git clone https://github.com/iotistic/ssh-finder.git
 cd ssh-finder
@@ -62,9 +63,9 @@ $ ssh-finder -H 192.168.1.0/24 -u mnvr -p 123
 2025-03-18 12:03:01,835 - INFO - Found 62 reachable hosts.
 2025-03-18 12:03:01,835 - INFO - Checking SSH port 22 for reachable hosts...
 2025-03-18 12:03:12,493 - INFO - Found 16
-Trying combinations:  19%|█████████████████████▌                                                                                             | 3/16 [00:00<00:01,  7.60it/s]
+Trying combinations:  19%|█████████████████████▌                             | 3/16 [00:00<00:01,  7.60it/s]
 2025-03-18 12:03:13,097 - INFO - ✅ SUCCESSFUL LOGIN! mnvr@192.168.1.223 with password: 123
-Trying combinations: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 16/16 [00:04<00:00,  3.77it/s]
+Trying combinations: 100%|██████████████████████████████████████████████████| 16/16 [00:04<00:00,  3.77it/s]
 
 
 ===== LOGIN ATTEMPT REPORT =====
@@ -75,7 +76,8 @@ Failed attempts: 15
 Success rate: 6.25%
 ---------------------------------
 Successful Combinations:
-  ✅ Host: 192.168.1.223 | User: mnvr | Password: 123      → SSH Command: ssh mnvr@192.168.1.223
+  ✅ Host: 192.168.1.223 | User: mnvr | Password: 123
+      → SSH Command: ssh mnvr@192.168.1.223
 =================================
 ```
 
@@ -92,11 +94,11 @@ Enter your SSH password:
 2025-03-23 13:56:04,706 - INFO - Found 46 reachable hosts.
 2025-03-23 13:56:04,706 - INFO - Checking SSH port 22 for reachable hosts...
 2025-03-23 13:56:13,847 - INFO - Found 15
-Trying combinations:  27%|██████████████████████████████████████████████▍                                                                                                                               | 4/15 [00:00<00:02,  5.39it/s]
+Trying combinations:  27%|██████████████████████████████████████████████▍    | 4/15 [00:00<00:02,  5.39it/s]
 2025-03-23 13:56:15,291 - INFO - ✅ SUCCESSFUL LOGIN! mnvr@192.168.1.148 with password: ********
-Trying combinations:  33%|██████████████████████████████████████████████████████████                                                                                                                    | 5/15 [00:01<00:03,  2.90it/s]
+Trying combinations:  33%|███████████████████████████████████████████████████ | 5/15 [00:01<00:03,  2.90it/s]
 2025-03-23 13:56:15,457 - INFO - ✅ SUCCESSFUL LOGIN! mnvr@192.168.1.140 with password: ********
-Trying combinations: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 15/15 [00:04<00:00,  3.36it/s]
+Trying combinations: 100%|███████████████████████████████████████████████████| 15/15 [00:04<00:00,  3.36it/s]
 
 
 ===== LOGIN ATTEMPT REPORT =====
@@ -107,8 +109,10 @@ Failed attempts: 13
 Success rate: 13.33%
 ---------------------------------
 Successful Combinations:
-  ✅ Host: 192.168.1.140 | User: mnvr | Password: ********      → SSH Command: ssh mnvr@192.168.1.140
-  ✅ Host: 192.168.1.148 | User: mnvr | Password: ********      → SSH Command: ssh mnvr@192.168.1.148
+  ✅ Host: 192.168.1.140 | User: mnvr | Password: ********
+      → SSH Command: ssh mnvr@192.168.1.140
+  ✅ Host: 192.168.1.148 | User: mnvr | Password: ********
+      → SSH Command: ssh mnvr@192.168.1.148
 =================================
 ```
 
@@ -116,28 +120,29 @@ Successful Combinations:
 
 ### Host Options
 
-- `-H, --inline-hosts` : Comma-separated list of hosts/subnets
-- `--hosts` : File containing list of hosts/subnets
+- `-H, --hosts` : Comma-separated list of hosts/subnets
+- `--hosts-file` : File containing list of hosts/subnets
 
 ### Authentication Options
 
-- `-p, --inline-passwords` : Comma-separated list of passwords
-- `--passwords` : File containing passwords
-- `-u, --user` : Single SSH username
-- `-U, --users` : File containing multiple usernames
-- `--inline-users` : Comma-separated list of usernames
-- **Interactive Mode**: If no username or password is provided, the script will prompt for input securely.
+- `-p, --passwords` : Comma-separated list of passwords
+- `--passwords-file` : File containing passwords
+- `-u, --users` : Comma-separated list of usernames
+- `--users-file` : File containing multiple usernames
+- **Interactive Mode**: If no username or password is provided, the script will prompt for input
+- `-s, --secret` : Enable secret mode for password input (masks password in logs)
 
 ### Logging & Output Options
 
 - `-l, --log-file` : Specify log file location (default: `ssh_attempts.log`)
-- `-q, --quiet` : Suppress most output
-- `-v, --verbose` : Enable detailed logs
+- `-q, --quiet` : Suppress most output (only warnings and errors)
+- `-v, --verbose` : Enable detailed debug logs
 
-### SSH & Connection Options
+### Connection Options
 
-- `--ssh-options` : Extra SSH options (e.g., `'-p 2222 -o ConnectTimeout=5'`)
-- `-c, --connect-on-first-success` : Stop and open SSH session on first success
+- `--ssh-timeout` : SSH connection timeout in seconds (default: `10`)
+- `-c, --connect-on-first-success` : Stop script and show SSH command on first success
+- `--port` : SSH port to check (default: `22`)
 
 ### Ping & Port Checks
 
@@ -145,16 +150,16 @@ Successful Combinations:
 - `--ping-timeout` : Set ping timeout (default: `1` second)
 - `--ping-pool-size` : Maximum concurrent ping processes
 - `--skip-port-check` : Skip checking if SSH port is open
-- `--port` : SSH port to check (default: `22`)
 - `--port-timeout` : Timeout for port check (default: `1` second)
 
-### Parallelism & Security
+### Parallelism
 
-- `--max-threads` : Maximum parallel SSH attempts
-- `-s, --secret` : Enable secret mode for password input
+- `--max-threads` : Maximum parallel SSH attempts (default: `100`)
 
 ## Notes
 
-- Ensure you have permission before attempting SSH logins.
-- Use responsibly and ethically.
-- Requires Python 3.
+- Requires Python 3.6+ and paramiko library
+- Automatically adds new hosts to known_hosts (no host key verification)
+- Passwords are masked in logs when using secret mode
+- Use responsibly and only on networks you have permission to scan
+- The script doesn't store any credentials after execution
